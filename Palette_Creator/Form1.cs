@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.IO;
 
 namespace Palette_Creator
 {
@@ -16,15 +17,23 @@ namespace Palette_Creator
         Form form2;
         List<Point> points = new List<Point>();
         List<Color> colors = new List<Color>();
+        List<LevelPoint> levelPoints = new List<LevelPoint>();
+        List<int[]> lines = new List<int[]>();
         Point startPoint = new Point(0,0);
         Point endPoint = new Point(0, 0);
         string imagePath = @"D:\work\images\1.jpg";
         Matrix m = new Matrix();
 
         Palette palette = new Palette();
+        Pen palettePen = new Pen(Color.Black, 1);
+        Pen levelPen = new Pen(Color.Black, 1);
 
         public Form1()
         {
+            ReadFiles();
+
+            levelPen.DashStyle = DashStyle.Dash;
+
             form2 = new Form();
             form2.TopMost = true;            
             form2.Load += Form2_Load;            
@@ -45,7 +54,9 @@ namespace Palette_Creator
         {
             LevelPoint lp = new LevelPoint(new Point(form2.ClientRectangle.Width-10, 10));
             lp.MouseClick += Lp_MouseClick;
+            lp.KeyPress += Form2_KeyPress;
             form2.Controls.Add(lp);
+            levelPoints.Add(lp);
 
             Button addBut = new Button();
             addBut.Text = "Add";
@@ -53,7 +64,34 @@ namespace Palette_Creator
             addBut.Height = 30;
             addBut.Top = form2.ClientRectangle.Height - 30;
             addBut.Left = form2.ClientRectangle.Width - addBut.Width;
+            addBut.KeyPress += Form2_KeyPress;
             form2.Controls.Add(addBut);
+        }
+
+        string data_folder = @"C:\Users\levabala\Downloads\a";
+        List<Point> testPoints = new List<Point>();
+        Point[] testPointsArr;
+        private void ReadFiles()
+        {
+            string[] files = Directory.GetFiles(data_folder);
+            int number;
+            testPoints = new List<Point>();
+            foreach (string p in files)
+            {
+                string ext = Path.GetExtension(p).Replace(".","");
+                if (int.TryParse(ext, out number))
+                {
+                    lines.Add(new int[1024]);
+                    byte[] buff = File.ReadAllBytes(p);
+                    for (int i = 0; i < buff.Length-4; i += 4)
+                    {                        
+                        lines[lines.Count - 1][i / 4] = BitConverter.ToInt32(buff, i);
+                    }
+                }
+            }
+            for (int i = 0; i < lines[0].Length; i++)
+                testPoints.Add(new Point(i, lines[0][i]));
+            testPointsArr = testPoints.ToArray();
         }
 
         private void Lp_MouseClick(object sender, MouseEventArgs e)
@@ -113,7 +151,7 @@ namespace Palette_Creator
             form2.Top = Top;
             form2.Height = Height;
 
-            CreateLevelPoint();
+            CreateLevelPoint();            
         }
 
         private void Form1_MouseMove(object sender, MouseEventArgs e)
@@ -198,12 +236,12 @@ namespace Palette_Creator
         {            
             Graphics g = e.Graphics;            
             g.Transform = m;
-            g.DrawImage(bm, 0, 0, bm.Width, bm.Height);
+            g.DrawLines(Pens.Green, testPointsArr);
+            /*g.DrawImage(bm, 0, 0, bm.Width, bm.Height);
             g.Transform = new Matrix();
-            g.DrawLine(myPen, startPoint, endPoint);
+            g.DrawLine(myPen, startPoint, endPoint);*/
         }
-
-        Pen palettePen = new Pen(Color.Black, 1);        
+        
         private void Form2_Paint(object sender, PaintEventArgs e)
         {            
             Graphics g = e.Graphics;
@@ -211,6 +249,10 @@ namespace Palette_Creator
             {
                 palettePen.Color = palette.colors[i];
                 g.DrawLine(palettePen, new Point(5, i), new Point(15, i));
+            }
+            foreach (LevelPoint lp in levelPoints)
+            {
+                g.DrawLine(Pens.Black, 0, lp.Top, form2.ClientRectangle.Width, lp.Top);
             }
         }
         
