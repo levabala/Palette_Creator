@@ -4,6 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Drawing;
+using System.Xml.Serialization;
+using System.Text.RegularExpressions;
+using System.Xml.Linq;
 
 namespace Palette_Creator
 {
@@ -53,6 +56,31 @@ namespace Palette_Creator
                 newColors.Add(SumColors(colors[i], colors[i + 1]));
             }            
             colors = newColors;
+        }
+
+        public void Sort()
+        {
+            colors.Sort(delegate (System.Drawing.Color left, System.Drawing.Color right)
+            {
+                return left.GetBrightness().CompareTo(right.GetBrightness());
+            });
+        }
+        public void WriteXML()
+        {                        
+            XmlSerializer writer =
+                new XmlSerializer(typeof(List<Color>));
+
+            string date = DateTime.Now.ToString();
+            date = Regex.Replace(date, @"\s+", "");
+            date = Regex.Replace(date, @":", "-");
+
+            XElement xmlelems = new XElement("Colors", colors.Select(c => new XElement("color", c.ToString())));            
+
+            var path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\Palette" + date + ".xml";
+            System.IO.FileStream file = System.IO.File.Create(path);
+
+            xmlelems.Save(file);            
+            file.Close();
         }
     }
 }
