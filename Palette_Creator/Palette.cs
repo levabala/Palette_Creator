@@ -50,11 +50,23 @@ namespace Palette_Creator
         public void Multiply()
         {
             List<Color> newColors = new List<Color>();            
-            for (int i = 1; i < colors.Count - 1; i++)
+            for (int i = 1; i < colors.Count - 2; i+=2)
             {
                 newColors.Add(SumColors(colors[i - 1], colors[i]));
                 newColors.Add(SumColors(colors[i], colors[i + 1]));
+                newColors.Add(SumColors(colors[i + 1], colors[i + 2]));
             }            
+            colors = newColors;
+        }
+
+        public void Compress()
+        {
+            List<Color> newColors = new List<Color>();
+            for (int i = 1; i < colors.Count - 3; i += 3)
+            {
+                newColors.Add(SumColors(colors[i - 1], colors[i]));
+                newColors.Add(SumColors(colors[i + 1], colors[i + 3]));
+            }
             colors = newColors;
         }
 

@@ -11,12 +11,14 @@ namespace Palette_Creator
     class LevelPoint : Control
     {
         private Point MouseDownLocation;
+        public Palette dependentPal;
 
-        public LevelPoint(Point pos)
+        public LevelPoint(Point pos, Palette pal)
         {
             Width = 30;
             Height = 30;            
             BackColor = Color.Aqua;
+            dependentPal = pal;
 
             Left = pos.X - 30;
             Top = pos.Y;
